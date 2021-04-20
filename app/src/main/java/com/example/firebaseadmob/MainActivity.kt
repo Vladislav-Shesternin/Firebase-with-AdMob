@@ -1,17 +1,21 @@
 package com.example.firebaseadmob
 
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import com.example.firebaseadmob.databinding.ActivityMainBinding
-import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.LoadAdError
-import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.*
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+
+const val TAG = "VLAD"
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var adRequest: AdRequest
+    private var interstitialAd: InterstitialAd? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,7 +23,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         MobileAds.initialize(this)
-        val adRequest = AdRequest.Builder().build()
+        adRequest = AdRequest.Builder().build()
+
+        val initInterstitialAd: (InterstitialAd?) -> Unit = { interstitialAd = it }
+        loadInterstitialAd(this, adRequest, initInterstitialAd)
 
         binding.btnShowBanner.setOnClickListener {
             binding.adBannerBottom.apply {
@@ -29,8 +36,62 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnShowInterstitial.setOnClickListener {
+            loadInterstitialAd(this, adRequest, initInterstitialAd)
+            interstitialAd?.apply {
+                show(this@MainActivity)
+                fullScreenContentCallback = object : FullScreenContentCallback(){
 
+                    override fun onAdFailedToShowFullScreenContent(p0: AdError) {
+                        super.onAdFailedToShowFullScreenContent(p0)
+                        Log.i(TAG, "onAdFailedToShowFullScreenContent: ")
+                    }
+
+                    override fun onAdShowedFullScreenContent() {
+                        super.onAdShowedFullScreenContent()
+                        Log.i(TAG, "onAdShowedFullScreenContent: ")
+                    }
+
+                    override fun onAdDismissedFullScreenContent() {
+                        super.onAdDismissedFullScreenContent()
+                        Log.i(TAG, "onAdDismissedFullScreenContent: ")
+                    }
+
+                    override fun onAdImpression() {
+                        super.onAdImpression()
+                        Log.i(TAG, "onAdImpression: ")
+                    }
+                }
+            }
         }
+    }
+
+    private fun loadInterstitialAd(
+        context: Context,
+        adRequest: AdRequest,
+        block: (InterstitialAd?) -> Unit
+    ) {
+
+        InterstitialAd.load(
+            context,
+            context.getString(R.string.interstitial_ad_unit_id),
+            adRequest,
+            Mmm(block)
+        )
+    }
+}
+
+class Mmm(private val block: (InterstitialAd?) -> Unit) : InterstitialAdLoadCallback() {
+
+    override fun onAdLoaded(interstitialAd: InterstitialAd) {
+        super.onAdLoaded(interstitialAd)
+        Log.i(TAG, "onAdLoaded: ")
+        block(interstitialAd)
+    }
+
+    override fun onAdFailedToLoad(adError: LoadAdError) {
+        super.onAdFailedToLoad(adError)
+        Log.i(TAG, "onAdFailedToLoad: ")
+        block(null)
     }
 }
 
