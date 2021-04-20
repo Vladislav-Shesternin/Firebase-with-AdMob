@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">FirebaseAdMob</string>
+
+    <!--IDs ad networks-->
+    <string name="admob_ad_network_id">ca-app-pub-6757786625316217~1661173015</string>
+
+    <!--IDs ad units-->
+    <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+</resources>
